@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import 'package:app_weather/forecast_tile_provider.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import 'country.dart';
 
 void main() => runApp(MyApp());
 
@@ -11,11 +10,23 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Google Maps Demo',
       home: MapSample(),
     );
   }
 }
+
+final List<Country> countries = [
+    Country(country: "Peru",latitude: -12.0431800,longitude: -77.0282400),
+    Country(country: "Estados Unidos",latitude: 38.0000000,longitude: -97.0000000)
+  ];
+
+CameraPosition _initialPosition = CameraPosition(
+    target: LatLng(countries[i].latitude, countries[i].longitude),
+    zoom: 4,
+  );  
+int i = 0;
 
 class MapSample extends StatefulWidget {
   @override
@@ -23,12 +34,9 @@ class MapSample extends StatefulWidget {
 }
 
 class MapSampleState extends State<MapSample> {
-  GoogleMapController? _controller;
 
-  static final CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(-12.0431800, -77.0282400),
-    zoom: 4,
-  );
+
+  GoogleMapController? _controller;
 
   Set<TileOverlay> _tileOverlays = {};
   
@@ -82,9 +90,38 @@ class MapSampleState extends State<MapSample> {
                 Icons.arrow_back_ios_new_rounded,
                 color: Colors.white, 
                 )),
-          )
+          ),
+          countryMap()
         ],
       ),
     );
+  }
+
+  Widget countryMap(){
+    return Center(
+      child: PopupMenuButton<Country>(
+        onSelected:(value) => setState(() {
+          _currentLocation(value.latitude,value.longitude);
+        }),
+        icon: const Icon(Icons.airplanemode_active),
+        itemBuilder: (BuildContext context) {
+            return countries.map((Country country) {
+                return PopupMenuItem<Country>(
+                    value: country,
+                    child: Text(country.country),
+                );
+              }).toList();
+            },
+      ),
+    );
+  }
+  void _currentLocation(var latitude, var longitude) async {
+   final GoogleMapController? controller = await _controller;
+    controller?.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+            target: LatLng(latitude, longitude),
+            zoom: 4,
+          ),
+    ));
   }
 }
