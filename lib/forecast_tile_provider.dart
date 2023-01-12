@@ -21,13 +21,21 @@ class ForecastTileProvider implements TileProvider{
 
     try {
       final url = "http://maps.openweathermap.org/maps/2.0/weather/$mapType/$zoom/$x/$y?date=$date&opacity=$opacity&appid=9de243494c0b295cca9337e1e96b00e2";
-      final uri = Uri.parse(url);
-      final imageData = await NetworkAssetBundle(uri).load("");
-      print("$zoom/$x/$y");
-      tileBytes = imageData.buffer.asUint8List();
+      if(TilesCache.tiles.containsKey(url)){
+        tileBytes = TilesCache.tiles[url]!;
+      }else{
+        final uri = Uri.parse(url);
+        final imageData = await NetworkAssetBundle(uri).load("");
+        tileBytes = imageData.buffer.asUint8List();
+        TilesCache.tiles[url] = tileBytes;
+      }
     } catch (e) {
       print(e.toString());
     }
     return Tile(tileSize,tileSize, tileBytes);
   }
+}
+
+class TilesCache{
+  static Map<String,Uint8List> tiles = {};
 }
